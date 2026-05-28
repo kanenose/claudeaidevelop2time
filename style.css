@@ -1,0 +1,267 @@
+/* ===================== CSS 변수 (라이트 / 다크) ===================== */
+:root {
+  --bg:         #f4f6fb;
+  --surface:    #ffffff;
+  --border:     #e8eaf0;
+  --text:       #222222;
+  --muted:      #999999;
+  --header-bg:  #ffffff;
+  --hover:      #f0f0f6;
+  --input-bg:   #ffffff;
+  --primary:    #4f46e5;
+  --primary-hv: #4338ca;
+  --danger:     #ef4444;
+  --danger-hv:  #dc2626;
+  --shadow:     0 1px 4px rgba(0,0,0,0.07);
+  --shadow-hv:  0 4px 14px rgba(0,0,0,0.10);
+}
+
+body.dark {
+  --bg:         #0f1117;
+  --surface:    #1a1d27;
+  --border:     #2d3045;
+  --text:       #e2e8f0;
+  --muted:      #6b7280;
+  --header-bg:  #13161f;
+  --hover:      #222537;
+  --input-bg:   #1e2130;
+  --shadow:     0 1px 4px rgba(0,0,0,0.35);
+  --shadow-hv:  0 4px 14px rgba(0,0,0,0.50);
+}
+
+/* ===================== Reset ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+.hidden { display: none !important; }
+
+/* ===================== Header ===================== */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  height: 56px; padding: 0 16px;
+  transition: background 0.25s, border-color 0.25s;
+}
+.header-inner {
+  max-width: 780px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 100%;
+}
+.logo {
+  font-size: 20px; font-weight: 800;
+  color: var(--primary); cursor: pointer;
+}
+.header-right { display: flex; align-items: center; gap: 8px; }
+.user-nickname-link {
+  font-size: 13px; color: var(--primary);
+  cursor: pointer; font-weight: 600;
+  padding: 4px 8px; border-radius: 6px;
+}
+.user-nickname-link:hover { background: var(--hover); }
+.icon-btn { font-size: 16px; padding: 6px 10px; }
+
+/* ===================== Main ===================== */
+main { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+
+/* ===================== Card ===================== */
+.card {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 14px;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.card h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+
+/* ===================== Auth ===================== */
+.auth-card { max-width: 420px; margin: 0 auto; }
+
+/* ===================== Tabs ===================== */
+.tab-row {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+.tab {
+  flex: 1; padding: 10px; background: none; border: none;
+  font-size: 15px; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color 0.2s;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+.profile-tab-row { margin-bottom: 12px; background: var(--surface); border-radius: 14px; padding: 0 16px; box-shadow: var(--shadow); }
+
+/* ===================== Input ===================== */
+.input {
+  display: block; width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px; margin-bottom: 12px;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.25s;
+  font-family: inherit;
+}
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
+.textarea { resize: vertical; min-height: 160px; line-height: 1.6; }
+.input::placeholder { color: var(--muted); }
+
+/* ===================== Button ===================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 18px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text);
+  cursor: pointer; font-size: 14px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn:hover { background: var(--hover); }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-hv); }
+.btn-danger  { background: var(--danger);  color: #fff; border-color: var(--danger);  }
+.btn-danger:hover  { background: var(--danger-hv); }
+.full { width: 100%; padding: 13px; font-size: 15px; margin-top: 4px; }
+.btn-row { display: flex; gap: 8px; margin-top: 4px; }
+.back-btn { margin-bottom: 14px; }
+
+/* ===================== Sort Bar ===================== */
+.sort-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.sort-btn {
+  padding: 6px 15px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text);
+  cursor: pointer; font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.sort-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ===================== Post Card ===================== */
+.post-card {
+  background: var(--surface); border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.15s, transform 0.1s, background 0.25s;
+}
+.post-card:hover { box-shadow: var(--shadow-hv); transform: translateY(-1px); }
+.post-card-title { font-size: 15px; font-weight: 600; margin-bottom: 9px; color: var(--text); }
+.post-card-meta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ===================== Author Link ===================== */
+.author-link {
+  cursor: pointer; color: var(--primary);
+  font-weight: 600;
+}
+.author-link:hover { text-decoration: underline; }
+
+/* ===================== Post Detail ===================== */
+.detail-title { font-size: 22px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; color: var(--text); }
+.detail-meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+.detail-content {
+  font-size: 15px; line-height: 1.85;
+  white-space: pre-wrap; word-break: break-word;
+  padding: 20px 0; border-top: 1px solid var(--border);
+  margin-bottom: 22px; color: var(--text);
+}
+.vote-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vote-btn {
+  padding: 9px 22px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text);
+  cursor: pointer; font-size: 14px; font-weight: 600;
+  transition: background 0.15s;
+}
+.vote-btn:hover    { background: var(--hover); }
+.vote-btn.liked    { background: var(--primary); color: #fff; border-color: var(--primary); }
+.vote-btn.disliked { background: var(--danger);  color: #fff; border-color: var(--danger); }
+
+/* ===================== Comments ===================== */
+.comments-area h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+.comment-input-area { margin-bottom: 20px; }
+.login-prompt { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.comment-card { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.comment-card:last-child { border-bottom: none; }
+.comment-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+.comment-author { font-weight: 700; color: var(--muted); font-size: 13px; }
+.comment-content { font-size: 14px; line-height: 1.65; color: var(--text); word-break: break-word; }
+.comment-delete-btn {
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 12px; padding: 0; margin-left: auto;
+  transition: color 0.15s;
+}
+.comment-delete-btn:hover { color: var(--danger); }
+
+/* ===================== Profile ===================== */
+.profile-card { }
+.profile-header { display: flex; align-items: center; gap: 18px; }
+.profile-avatar {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 800; flex-shrink: 0;
+  user-select: none;
+}
+.profile-info { flex: 1; }
+.profile-info h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.profile-joined { font-size: 13px; color: var(--muted); }
+.nickname-edit-row { display: flex; gap: 8px; align-items: flex-start; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.nickname-edit-row .input { margin-bottom: 0; max-width: 240px; }
+
+/* ===================== Settings ===================== */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { display: flex; flex-direction: column; gap: 3px; }
+.setting-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.setting-desc  { font-size: 12px; color: var(--muted); }
+
+/* 토글 스위치 */
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--border); border-radius: 28px;
+  transition: background 0.3s;
+}
+.toggle-slider::before {
+  position: absolute; content: '';
+  height: 22px; width: 22px;
+  left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input:checked + .toggle-slider { background: var(--primary); }
+input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+/* ===================== 공통 메시지 ===================== */
+.empty-msg   { text-align: center; color: var(--muted); font-size: 14px; padding: 36px 0; }
+.error-msg   { color: var(--danger); font-size: 13px; margin-top: 8px; min-height: 18px; }
+.success-msg { color: #10b981;       font-size: 13px; margin-top: 8px; }
+
+/* ===================== Responsive ===================== */
+@media (max-width: 600px) {
+  .logo { font-size: 17px; }
+  .detail-title { font-size: 18px; }
+  .vote-area { gap: 8px; }
+  main { padding: 16px 12px 50px; }
+  .card { padding: 18px; }
+  .profile-header { gap: 12px; }
+  .profile-avatar { width: 54px; height: 54px; font-size: 22px; }
+  .nickname-edit-row { flex-direction: column; }
+  .nickname-edit-row .input { max-width: 100%; }
+}

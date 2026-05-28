@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>커뮤니티</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo" onclick="goToList()">커뮤니티</span>
+      <div class="header-right">
+        <span id="user-nickname" class="user-nickname-link" onclick="showOwnProfile()"></span>
+        <button id="btn-write"    class="btn btn-primary hidden" onclick="showSection('write')">글쓰기</button>
+        <button id="btn-settings" class="btn icon-btn hidden"   onclick="showSection('settings')" title="설정">⚙️</button>
+        <button id="btn-login"    class="btn"                   onclick="showSection('auth')">로그인</button>
+        <button id="btn-logout"   class="btn hidden"            onclick="doLogout()">로그아웃</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- 인증 -->
+    <section id="section-auth" class="section hidden">
+      <div class="card auth-card">
+        <div class="tab-row">
+          <button class="tab active" id="tab-login"  onclick="switchTab('login')">로그인</button>
+          <button class="tab"        id="tab-signup" onclick="switchTab('signup')">회원가입</button>
+        </div>
+        <div id="form-login">
+          <h2>로그인</h2>
+          <input class="input" type="email"    id="login-email"    placeholder="이메일" />
+          <input class="input" type="password" id="login-password" placeholder="비밀번호" />
+          <button class="btn btn-primary full" onclick="doLogin()">로그인</button>
+          <p class="error-msg" id="login-err"></p>
+        </div>
+        <div id="form-signup" class="hidden">
+          <h2>회원가입</h2>
+          <input class="input" type="email"    id="signup-email"    placeholder="이메일" />
+          <input class="input" type="password" id="signup-password" placeholder="비밀번호 (6자 이상)" />
+          <input class="input" type="text"     id="signup-nickname" placeholder="닉네임 (2자 이상)" />
+          <button class="btn btn-primary full" onclick="doSignup()">회원가입</button>
+          <p class="error-msg" id="signup-err"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 글쓰기 -->
+    <section id="section-write" class="section hidden">
+      <div class="card">
+        <h2>글쓰기</h2>
+        <input class="input" type="text" id="post-title" placeholder="제목" />
+        <textarea class="input textarea" id="post-content" placeholder="내용을 입력하세요"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="doCreatePost()">작성</button>
+          <button class="btn" onclick="goToList()">취소</button>
+        </div>
+        <p class="error-msg" id="write-err"></p>
+      </div>
+    </section>
+
+    <!-- 목록 -->
+    <section id="section-list" class="section">
+      <div class="sort-bar">
+        <button class="sort-btn active" data-sort="latest"   onclick="changeSort(this)">최신순</button>
+        <button class="sort-btn"        data-sort="popular"  onclick="changeSort(this)">인기순</button>
+        <button class="sort-btn"        data-sort="hot"      onclick="changeSort(this)">화제순</button>
+        <button class="sort-btn"        data-sort="likes"    onclick="changeSort(this)">추천순</button>
+        <button class="sort-btn"        data-sort="comments" onclick="changeSort(this)">댓글순</button>
+      </div>
+      <div id="posts-container"></div>
+    </section>
+
+    <!-- 상세 -->
+    <section id="section-detail" class="section hidden">
+      <button class="btn back-btn" onclick="goToList()">← 목록으로</button>
+      <div id="post-detail-content" class="card"></div>
+      <div class="card comments-area">
+        <h3 id="comments-title">댓글</h3>
+        <div id="comment-write-area"></div>
+        <div id="comments-container"></div>
+      </div>
+    </section>
+
+    <!-- 프로필 -->
+    <section id="section-profile" class="section hidden">
+      <button class="btn back-btn" onclick="goToList()">← 목록으로</button>
+      <div class="card profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar"></div>
+          <div class="profile-info">
+            <h2 id="profile-nickname"></h2>
+            <p id="profile-joined" class="profile-joined"></p>
+          </div>
+        </div>
+        <div id="profile-edit-area"></div>
+      </div>
+      <div class="tab-row profile-tab-row">
+        <button class="tab active" id="ptab-posts"    onclick="switchProfileTab('posts')">작성한 글</button>
+        <button class="tab"        id="ptab-comments" onclick="switchProfileTab('comments')">작성한 댓글</button>
+      </div>
+      <div id="profile-posts-area"></div>
+      <div id="profile-comments-area" class="hidden"></div>
+    </section>
+
+    <!-- 설정 -->
+    <section id="section-settings" class="section hidden">
+      <button class="btn back-btn" onclick="goToList()">← 뒤로</button>
+      <div class="card">
+        <h2>설정</h2>
+        <div class="setting-row">
+          <div class="setting-label">
+            <span class="setting-title">다크 모드</span>
+            <span class="setting-desc">어두운 화면으로 전환합니다</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode(this.checked)" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
