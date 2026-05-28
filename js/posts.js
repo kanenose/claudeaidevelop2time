@@ -33,11 +33,15 @@ function renderPosts() {
     container.innerHTML = '<p class="empty-msg">아직 게시글이 없습니다. 첫 글을 작성해보세요!</p>';
     return;
   }
-  container.innerHTML = list.map(p => `
+  container.innerHTML = list.map(p => {
+    const authorHtml = p.isAnonymous
+      ? `<span class="author-anon">익명</span>`
+      : `<span class="author-link" onclick="event.stopPropagation();showProfile('${p.authorUid}','${esc(p.authorNickname)}')">${esc(p.authorNickname)}</span>`;
+    return `
     <div class="post-card" onclick="handlePostClick('${p.id}')">
       <div class="post-card-title">${esc(p.title)}</div>
       <div class="post-card-meta">
-        <span class="author-link" onclick="event.stopPropagation();showProfile('${p.authorUid}','${esc(p.authorNickname)}')">${esc(p.authorNickname)}</span>
+        ${authorHtml}
         <span>${formatDate(p.createdAt)}</span>
         <span>👍 ${p.likes||0}</span>
         <span>👎 ${p.dislikes||0}</span>
@@ -46,7 +50,8 @@ function renderPosts() {
         <span>💬 ${p.commentCount||0}</span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function handlePostClick(postId) {
@@ -67,8 +72,9 @@ function changeSort(btn) {
 
 async function doCreatePost() {
   if (!currentUser) return alert('로그인이 필요합니다.');
-  const title   = document.getElementById('post-title').value.trim();
-  const content = document.getElementById('post-content').value.trim();
+  const title       = document.getElementById('post-title').value.trim();
+  const content     = document.getElementById('post-content').value.trim();
+  const isAnonymous = document.getElementById('post-anon').checked;
   clearErr('write-err');
 
   if (!title)   return showErr('write-err', '제목을 입력해주세요.');
@@ -78,13 +84,15 @@ async function doCreatePost() {
     await db.collection('posts').add({
       title, content,
       authorUid:      currentUser.uid,
-      authorNickname: currentUser.nickname,
+      authorNickname: isAnonymous ? '익명' : currentUser.nickname,
+      isAnonymous,
       likes: 0, dislikes: 0, score: 0, reactionCount: 0, commentCount: 0,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     });
     document.getElementById('post-title').value   = '';
     document.getElementById('post-content').value = '';
+    document.getElementById('post-anon').checked  = false;
     goToList();
   } catch (e) {
     showErr('write-err', '작성 중 오류가 발생했습니다: ' + e.message);
@@ -121,10 +129,14 @@ function renderPostDetail(post, userVote) {
   const likedCls   = userVote === 1  ? 'liked'    : '';
   const dislikeCls = userVote === -1 ? 'disliked' : '';
 
+  const authorHtml = post.isAnonymous
+    ? `<span class="author-anon">익명</span>`
+    : `<span class="author-link" onclick="showProfile('${post.authorUid}','${esc(post.authorNickname)}')">${esc(post.authorNickname)}</span>`;
+
   document.getElementById('post-detail-content').innerHTML = `
     <div class="detail-title">${esc(post.title)}</div>
     <div class="detail-meta">
-      <span class="author-link" onclick="showProfile('${post.authorUid}','${esc(post.authorNickname)}')">${esc(post.authorNickname)}</span>
+      ${authorHtml}
       <span>${formatDate(post.createdAt)}</span>
       <span>점수 ${post.score||0} &nbsp;|&nbsp; 반응 ${post.reactionCount||0} &nbsp;|&nbsp; 💬 ${post.commentCount||0}</span>
     </div>

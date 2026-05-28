@@ -55,6 +55,10 @@
         <h2>글쓰기</h2>
         <input class="input" type="text" id="post-title" placeholder="제목" />
         <textarea class="input textarea" id="post-content" placeholder="내용을 입력하세요"></textarea>
+        <label class="anon-label">
+          <input type="checkbox" id="post-anon" />
+          <span>익명으로 작성</span>
+        </label>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="doCreatePost()">작성</button>
           <button class="btn" onclick="goToList()">취소</button>

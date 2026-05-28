@@ -48,14 +48,21 @@ function switchProfileTab(tab) {
 async function loadProfilePosts(uid) {
   const area = document.getElementById('profile-posts-area');
   area.innerHTML = '<p class="empty-msg">불러오는 중...</p>';
-  const snap  = await db.collection('posts').where('authorUid', '==', uid).get();
-  const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const isOwnProfile = currentUser && currentUser.uid === uid;
+
+  const snap = await db.collection('posts').where('authorUid', '==', uid).get();
+  let posts  = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
+
+  if (!isOwnProfile) posts = posts.filter(p => !p.isAnonymous);
 
   if (!posts.length) { area.innerHTML = '<p class="empty-msg">작성한 글이 없습니다.</p>'; return; }
   area.innerHTML = posts.map(p => `
     <div class="post-card" onclick="handlePostClick('${p.id}')">
-      <div class="post-card-title">${esc(p.title)}</div>
+      <div class="post-card-title">
+        ${esc(p.title)}
+        ${p.isAnonymous ? '<span class="anon-badge">익명</span>' : ''}
+      </div>
       <div class="post-card-meta">
         <span>${formatDate(p.createdAt)}</span>
         <span>👍 ${p.likes||0}</span>
