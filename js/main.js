@@ -1,1 +1,2 @@
 loadPosts();
+loadBannedWords();

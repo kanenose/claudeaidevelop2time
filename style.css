@@ -280,6 +280,101 @@ input:checked + .toggle-slider::before { transform: translateX(22px); }
 .error-msg   { color: var(--danger); font-size: 13px; margin-top: 8px; min-height: 18px; }
 .success-msg { color: #10b981;       font-size: 13px; margin-top: 8px; }
 
+/* ===================== Admin Panel ===================== */
+.admin-tab-row { flex-wrap: wrap; }
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px; margin: 8px 0 20px;
+}
+.admin-stat-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 16px; text-align: center;
+}
+.admin-stat-warn { border-color: #f59e0b; background: rgba(245,158,11,0.07); }
+.admin-stat-num  { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 6px; }
+.admin-stat-warn .admin-stat-num { color: #f59e0b; }
+.admin-stat-label { font-size: 13px; color: var(--muted); }
+
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.admin-table th {
+  text-align: left; padding: 8px 10px;
+  background: var(--bg); color: var(--muted);
+  font-weight: 600; font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: var(--hover); }
+.post-title-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-action-cell { white-space: nowrap; }
+.admin-action-cell .btn, .admin-action-cell button { margin-right: 3px; }
+
+.btn-sm { padding: 4px 10px !important; font-size: 12px !important; border-radius: 6px !important; }
+
+/* Badges */
+.badge-notice {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  color: #fff; background: #f59e0b;
+  border-radius: 4px; padding: 1px 6px; margin-right: 4px; vertical-align: middle;
+}
+.badge-pin {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  color: #fff; background: var(--primary);
+  border-radius: 4px; padding: 1px 6px; margin-right: 4px; vertical-align: middle;
+}
+.badge-type {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  color: var(--muted); background: var(--hover);
+  border-radius: 4px; padding: 1px 7px;
+}
+.role-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--hover); color: var(--muted);
+}
+.role-admin { background: rgba(79,70,229,0.12); color: var(--primary); }
+.status-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.status-ok     { background: rgba(16,185,129,0.12); color: #10b981; }
+.status-banned { background: rgba(239,68,68,0.12);  color: var(--danger); }
+.status-warn   { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+/* Banned Word Chips */
+.banned-word-input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.banned-word-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.banned-word-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(239,68,68,0.10); color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 20px; padding: 4px 10px 4px 12px;
+  font-size: 13px; font-weight: 600;
+}
+.chip-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--danger); font-size: 16px; line-height: 1;
+  padding: 0 2px; opacity: 0.7; transition: opacity 0.15s;
+}
+.chip-remove:hover { opacity: 1; }
+
+/* Admin controls in post detail */
+.admin-post-controls {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding-top: 14px; border-top: 1px solid var(--border); margin-top: 14px;
+}
+
+/* Notice / Pinned post card indicators */
+.post-notice { border-left: 3px solid #f59e0b; }
+.post-pinned { border-left: 3px solid var(--primary); }
+
+/* Report button */
+.report-btn {
+  background: none; border: none;
+  color: var(--muted); font-size: 12px;
+  cursor: pointer; padding: 0 4px; margin-left: auto;
+  transition: color 0.15s;
+}
+.report-btn:hover { color: var(--danger); }
+
 /* ===================== Responsive ===================== */
 @media (max-width: 600px) {
   .logo { font-size: 17px; }

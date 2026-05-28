@@ -1,16 +1,22 @@
 auth.onAuthStateChanged(async user => {
   if (user) {
     try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      const nickname = doc.exists ? doc.data().nickname : user.email;
-      currentUser = { uid: user.uid, email: user.email, nickname };
+      const doc  = await db.collection('users').doc(user.uid).get();
+      const data = doc.exists ? doc.data() : {};
+      const nickname = data.nickname || user.email;
+      const role     = data.role     || 'user';
+      const isBanned = data.isBanned || false;
+      currentUser = { uid: user.uid, email: user.email, nickname, role, isBanned };
+      isAdmin = role === 'admin';
     } catch {
-      currentUser = { uid: user.uid, email: user.email, nickname: user.email };
+      currentUser = { uid: user.uid, email: user.email, nickname: user.email, role: 'user', isBanned: false };
+      isAdmin = false;
     }
     updateAuthUI();
     if (currentPostId) await showPostDetail(currentPostId);
   } else {
     currentUser = null;
+    isAdmin = false;
     updateAuthUI();
     if (currentPostId) {
       if (unsubscribeComments) { unsubscribeComments(); unsubscribeComments = null; }

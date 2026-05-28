@@ -7,23 +7,28 @@ function loadPosts() {
 }
 
 function sortedPosts() {
-  const arr = [...allPosts];
+  const notices = allPosts.filter(p =>  p.isNotice).sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
+  const pinned  = allPosts.filter(p =>  p.isPinned && !p.isNotice).sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
+  const regular = allPosts.filter(p => !p.isNotice && !p.isPinned);
+
+  let sorted;
   switch (currentSort) {
     case 'popular':
-      return arr.sort((a, b) =>
-        ((b.score||0) - (a.score||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      sorted = regular.sort((a, b) => ((b.score||0) - (a.score||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      break;
     case 'hot':
-      return arr.sort((a, b) =>
-        ((b.reactionCount||0) - (a.reactionCount||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      sorted = regular.sort((a, b) => ((b.reactionCount||0) - (a.reactionCount||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      break;
     case 'likes':
-      return arr.sort((a, b) =>
-        ((b.likes||0) - (a.likes||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      sorted = regular.sort((a, b) => ((b.likes||0) - (a.likes||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      break;
     case 'comments':
-      return arr.sort((a, b) =>
-        ((b.commentCount||0) - (a.commentCount||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      sorted = regular.sort((a, b) => ((b.commentCount||0) - (a.commentCount||0)) || (tsMs(b.createdAt) - tsMs(a.createdAt)));
+      break;
     default:
-      return arr.sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
+      sorted = regular.sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
   }
+  return [...notices, ...pinned, ...sorted];
 }
 
 function renderPosts() {
@@ -37,9 +42,12 @@ function renderPosts() {
     const authorHtml = p.isAnonymous
       ? `<span class="author-anon">익명</span>`
       : `<span class="author-link" onclick="event.stopPropagation();showProfile('${p.authorUid}','${esc(p.authorNickname)}')">${esc(p.authorNickname)}</span>`;
+    const noticeBadge = p.isNotice ? '<span class="badge-notice">공지</span> ' : '';
+    const pinBadge    = p.isPinned && !p.isNotice ? '<span class="badge-pin">고정</span> ' : '';
+    const extraCls    = p.isNotice ? ' post-notice' : p.isPinned ? ' post-pinned' : '';
     return `
-    <div class="post-card" onclick="handlePostClick('${p.id}')">
-      <div class="post-card-title">${esc(p.title)}</div>
+    <div class="post-card${extraCls}" onclick="handlePostClick('${p.id}')">
+      <div class="post-card-title">${noticeBadge}${pinBadge}${esc(p.title)}</div>
       <div class="post-card-meta">
         ${authorHtml}
         <span>${formatDate(p.createdAt)}</span>
@@ -72,6 +80,7 @@ function changeSort(btn) {
 
 async function doCreatePost() {
   if (!currentUser) return alert('로그인이 필요합니다.');
+  if (currentUser.isBanned) return showErr('write-err', '계정이 차단되어 게시글을 작성할 수 없습니다.');
   const title       = document.getElementById('post-title').value.trim();
   const content     = document.getElementById('post-content').value.trim();
   const isAnonymous = document.getElementById('post-anon').checked;
@@ -79,6 +88,8 @@ async function doCreatePost() {
 
   if (!title)   return showErr('write-err', '제목을 입력해주세요.');
   if (!content) return showErr('write-err', '내용을 입력해주세요.');
+  if (containsBannedWord(title) || containsBannedWord(content))
+    return showErr('write-err', '금지어가 포함되어 있습니다.');
 
   try {
     await db.collection('posts').add({
@@ -133,8 +144,22 @@ function renderPostDetail(post, userVote) {
     ? `<span class="author-anon">익명</span>`
     : `<span class="author-link" onclick="showProfile('${post.authorUid}','${esc(post.authorNickname)}')">${esc(post.authorNickname)}</span>`;
 
+  const noticeBadge = post.isNotice ? '<span class="badge-notice">공지</span> ' : '';
+  const pinBadge    = post.isPinned && !post.isNotice ? '<span class="badge-pin">고정</span> ' : '';
+
+  const reportBtn = !isAuthor && currentUser
+    ? `<button class="report-btn" onclick="doReport('post','${post.id}')">신고</button>`
+    : '';
+
+  const adminControls = isAdmin ? `
+    <div class="admin-post-controls">
+      <button class="btn btn-sm ${post.isNotice ? 'btn-primary' : ''}" onclick="adminToggleNoticeFromDetail('${post.id}',${!post.isNotice})">${post.isNotice ? '공지 해제' : '공지 설정'}</button>
+      <button class="btn btn-sm ${post.isPinned ? 'btn-primary' : ''}" onclick="adminTogglePinFromDetail('${post.id}',${!post.isPinned})">${post.isPinned ? '고정 해제' : '상단 고정'}</button>
+    </div>
+  ` : '';
+
   document.getElementById('post-detail-content').innerHTML = `
-    <div class="detail-title">${esc(post.title)}</div>
+    <div class="detail-title">${noticeBadge}${pinBadge}${esc(post.title)}</div>
     <div class="detail-meta">
       ${authorHtml}
       <span>${formatDate(post.createdAt)}</span>
@@ -144,8 +169,10 @@ function renderPostDetail(post, userVote) {
     <div class="vote-area">
       <button class="vote-btn ${likedCls}"   onclick="doVote('${post.id}', 1)">👍 추천 ${post.likes||0}</button>
       <button class="vote-btn ${dislikeCls}" onclick="doVote('${post.id}', -1)">👎 비추천 ${post.dislikes||0}</button>
-      ${isAuthor ? `<button class="btn btn-danger" style="margin-left:auto" onclick="doDeletePost('${post.id}')">삭제</button>` : ''}
+      ${reportBtn}
+      ${isAuthor || isAdmin ? `<button class="btn btn-danger" style="margin-left:auto" onclick="doDeletePost('${post.id}')">삭제</button>` : ''}
     </div>
+    ${adminControls}
   `;
 }
 

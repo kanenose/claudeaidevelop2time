@@ -46,13 +46,19 @@ function renderComments(comments) {
     return;
   }
   c.innerHTML = comments.map(cm => {
-    const mine = currentUser && currentUser.uid === cm.authorUid;
+    const mine      = currentUser && currentUser.uid === cm.authorUid;
+    const canDelete = mine || isAdmin;
+    const reportBtn = !mine && currentUser
+      ? `<button class="report-btn" onclick="doReport('comment','${cm.id}')">신고</button>`
+      : '';
+    const deleteHandler = mine ? `doDeleteComment('${cm.id}')` : `adminDeleteComment('${cm.id}')`;
     return `
       <div class="comment-card">
         <div class="comment-meta">
           <span class="author-link comment-author" onclick="showProfile('${cm.authorUid}','${esc(cm.authorNickname)}')">${esc(cm.authorNickname)}</span>
           <span>${formatDate(cm.createdAt)}</span>
-          ${mine ? `<button class="comment-delete-btn" onclick="doDeleteComment('${cm.id}')">삭제</button>` : ''}
+          ${reportBtn}
+          ${canDelete ? `<button class="comment-delete-btn" onclick="${deleteHandler}">삭제</button>` : ''}
         </div>
         <div class="comment-content">${esc(cm.content)}</div>
       </div>
@@ -62,11 +68,14 @@ function renderComments(comments) {
 
 async function doAddComment() {
   if (!currentUser) return alert('로그인이 필요합니다.');
+  if (currentUser.isBanned) return showErr('comment-err', '계정이 차단되어 댓글을 작성할 수 없습니다.');
   const input   = document.getElementById('comment-input');
   const content = (input?.value || '').trim();
   clearErr('comment-err');
 
   if (!content) return showErr('comment-err', '댓글 내용을 입력해주세요.');
+  if (containsBannedWord(content))
+    return showErr('comment-err', '금지어가 포함된 댓글은 작성할 수 없습니다.');
 
   try {
     const batch = db.batch();

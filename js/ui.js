@@ -1,11 +1,15 @@
 function showSection(name) {
-  ['auth', 'write', 'list', 'detail', 'profile', 'settings'].forEach(s => {
+  ['auth', 'write', 'list', 'detail', 'profile', 'settings', 'admin'].forEach(s => {
     document.getElementById(`section-${s}`).classList.toggle('hidden', s !== name);
   });
   if (name === 'settings') {
     const toggle = document.getElementById('dark-mode-toggle');
     if (toggle) toggle.checked = localStorage.getItem('darkMode') === '1';
     if (typeof renderSettingsForm === 'function') renderSettingsForm();
+  }
+  if (name === 'admin') {
+    if (!isAdmin) { showSection('list'); return; }
+    switchAdminTab('dashboard');
   }
 }
 
@@ -29,6 +33,7 @@ function updateAuthUI() {
   document.getElementById('user-nickname').textContent = ok ? `${currentUser.nickname}님` : '';
   document.getElementById('btn-write').classList.toggle('hidden',    !ok);
   document.getElementById('btn-settings').classList.toggle('hidden', !ok);
+  document.getElementById('btn-admin').classList.toggle('hidden',    !isAdmin);
   document.getElementById('btn-login').classList.toggle('hidden',     ok);
   document.getElementById('btn-logout').classList.toggle('hidden',   !ok);
   if (currentPostId) updateCommentWriteArea();

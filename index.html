@@ -14,6 +14,7 @@
       <div class="header-right">
         <span id="user-nickname" class="user-nickname-link" onclick="showOwnProfile()"></span>
         <button id="btn-write"    class="btn btn-primary hidden" onclick="showSection('write')">글쓰기</button>
+        <button id="btn-admin"    class="btn icon-btn hidden"   onclick="showSection('admin')" title="관리자">🛡️</button>
         <button id="btn-settings" class="btn icon-btn hidden"   onclick="showSection('settings')" title="설정">⚙️</button>
         <button id="btn-login"    class="btn"                   onclick="showSection('auth')">로그인</button>
         <button id="btn-logout"   class="btn hidden"            onclick="doLogout()">로그아웃</button>
@@ -111,6 +112,49 @@
       <div id="profile-comments-area" class="hidden"></div>
     </section>
 
+    <!-- 관리자 패널 -->
+    <section id="section-admin" class="section hidden">
+      <button class="btn back-btn" onclick="goToList()">← 뒤로</button>
+      <div class="card">
+        <h2>관리자 패널</h2>
+        <div class="tab-row admin-tab-row">
+          <button class="tab active" id="admin-tab-dashboard"    onclick="switchAdminTab('dashboard')">대시보드</button>
+          <button class="tab"        id="admin-tab-users"        onclick="switchAdminTab('users')">사용자 관리</button>
+          <button class="tab"        id="admin-tab-posts"        onclick="switchAdminTab('posts')">게시물 관리</button>
+          <button class="tab"        id="admin-tab-reports"      onclick="switchAdminTab('reports')">신고 처리</button>
+          <button class="tab"        id="admin-tab-banned-words" onclick="switchAdminTab('banned-words')">금지어</button>
+          <button class="tab"        id="admin-tab-logs"         onclick="switchAdminTab('logs')">활동 로그</button>
+        </div>
+
+        <div id="admin-panel-dashboard">
+          <div id="admin-dashboard"></div>
+        </div>
+        <div id="admin-panel-users" class="hidden">
+          <div id="admin-users"></div>
+        </div>
+        <div id="admin-panel-posts" class="hidden">
+          <div id="admin-posts"></div>
+        </div>
+        <div id="admin-panel-reports" class="hidden">
+          <div style="margin-bottom:12px">
+            <label style="font-size:14px;color:var(--muted)">필터:
+              <select id="admin-report-filter" onchange="renderAdminReports()" style="margin-left:6px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text)">
+                <option value="pending">대기중</option>
+                <option value="all">전체</option>
+              </select>
+            </label>
+          </div>
+          <div id="admin-reports"></div>
+        </div>
+        <div id="admin-panel-banned-words" class="hidden">
+          <div id="admin-banned-words"></div>
+        </div>
+        <div id="admin-panel-logs" class="hidden">
+          <div id="admin-logs"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- 설정 -->
     <section id="section-settings" class="section hidden">
       <button class="btn back-btn" onclick="goToList()">← 뒤로</button>
@@ -171,6 +215,7 @@
   <script src="js/votes.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/admin.js"></script>
   <script src="js/main.js"></script>
 
 </body>
