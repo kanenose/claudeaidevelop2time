@@ -219,6 +219,9 @@ main { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
 .nickname-edit-row .input { margin-bottom: 0; max-width: 240px; }
 
 /* ===================== Settings ===================== */
+.settings-group-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+.danger-title { color: var(--danger); }
+.danger-zone-card { border: 1px solid rgba(239, 68, 68, 0.25); }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 0; border-bottom: 1px solid var(--border);

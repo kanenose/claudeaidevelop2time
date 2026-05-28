@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>커뮤니티</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -39,9 +39,10 @@
         </div>
         <div id="form-signup" class="hidden">
           <h2>회원가입</h2>
-          <input class="input" type="email"    id="signup-email"    placeholder="이메일" />
-          <input class="input" type="password" id="signup-password" placeholder="비밀번호 (6자 이상)" />
-          <input class="input" type="text"     id="signup-nickname" placeholder="닉네임 (2자 이상)" />
+          <input class="input" type="email"    id="signup-email"            placeholder="이메일" />
+          <input class="input" type="password" id="signup-password"         placeholder="비밀번호 (6자 이상)" />
+          <input class="input" type="password" id="signup-password-confirm" placeholder="비밀번호 확인" />
+          <input class="input" type="text"     id="signup-nickname"         placeholder="닉네임 (2자 이상)" />
           <button class="btn btn-primary full" onclick="doSignup()">회원가입</button>
           <p class="error-msg" id="signup-err"></p>
         </div>
@@ -109,6 +110,7 @@
     <!-- 설정 -->
     <section id="section-settings" class="section hidden">
       <button class="btn back-btn" onclick="goToList()">← 뒤로</button>
+
       <div class="card">
         <h2>설정</h2>
         <div class="setting-row">
@@ -122,6 +124,32 @@
           </label>
         </div>
       </div>
+
+      <div class="card">
+        <h3 class="settings-group-title">닉네임 변경</h3>
+        <div class="nickname-edit-row">
+          <input class="input" type="text" id="settings-new-nickname" placeholder="새 닉네임" />
+          <button class="btn btn-primary" onclick="doChangeNickname()">변경</button>
+        </div>
+        <p class="error-msg" id="settings-nickname-msg"></p>
+      </div>
+
+      <div class="card">
+        <h3 class="settings-group-title">비밀번호 변경</h3>
+        <input class="input" type="password" id="settings-current-password"         placeholder="현재 비밀번호" />
+        <input class="input" type="password" id="settings-new-password"             placeholder="새 비밀번호 (6자 이상)" />
+        <input class="input" type="password" id="settings-new-password-confirm"     placeholder="새 비밀번호 확인" />
+        <button class="btn btn-primary" onclick="doChangePassword()">변경</button>
+        <p class="error-msg" id="settings-password-msg"></p>
+      </div>
+
+      <div class="card danger-zone-card">
+        <h3 class="settings-group-title danger-title">회원 탈퇴</h3>
+        <p class="setting-desc" style="margin-bottom:16px">탈퇴 시 작성한 모든 게시글과 댓글이 삭제되며 복구할 수 없습니다.</p>
+        <input class="input" type="password" id="settings-delete-password" placeholder="비밀번호를 입력해 탈퇴 확인" />
+        <button class="btn btn-danger" onclick="doDeleteAccount()">탈퇴하기</button>
+        <p class="error-msg" id="settings-delete-msg"></p>
+      </div>
     </section>
 
   </main>
@@ -129,7 +157,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="app.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/posts.js"></script>
+  <script src="js/comments.js"></script>
+  <script src="js/votes.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/main.js"></script>
 
 </body>
 </html>
