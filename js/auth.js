@@ -12,6 +12,11 @@ auth.onAuthStateChanged(async user => {
       currentUser = { uid: user.uid, email: user.email, nickname: user.email, role: 'user', isBanned: false };
       isAdmin = false;
     }
+    if (currentUser.isBanned) {
+      await auth.signOut();
+      alert('차단된 계정입니다. 로그인할 수 없습니다.');
+      return;
+    }
     updateAuthUI();
     if (currentPostId) await showPostDetail(currentPostId);
   } else {

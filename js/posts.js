@@ -183,11 +183,12 @@ async function doDeletePost(postId) {
       db.collection('comments').where('postId', '==', postId).get(),
       db.collection('votes').where('postId', '==', postId).get()
     ]);
-    const batch = db.batch();
-    cs.docs.forEach(d => batch.delete(d.ref));
-    vs.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(db.collection('posts').doc(postId));
-    await batch.commit();
+    const allRefs = [...cs.docs.map(d => d.ref), ...vs.docs.map(d => d.ref), db.collection('posts').doc(postId)];
+    for (let i = 0; i < allRefs.length; i += 499) {
+      const b = db.batch();
+      allRefs.slice(i, i + 499).forEach(ref => b.delete(ref));
+      await b.commit();
+    }
     goToList();
   } catch (e) {
     alert('삭제 중 오류: ' + e.message);

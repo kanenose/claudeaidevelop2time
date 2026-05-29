@@ -35,9 +35,11 @@ async function doChangeNickname() {
       db.collection('comments').where('authorUid', '==', currentUser.uid).get()
     ]);
 
+    const nonAnonPosts = postsSnap.docs.filter(d => !d.data().isAnonymous);
+
     let batch = db.batch();
     let count = 0;
-    for (const doc of [...postsSnap.docs, ...commentsSnap.docs]) {
+    for (const doc of [...nonAnonPosts, ...commentsSnap.docs]) {
       batch.update(doc.ref, { authorNickname: newNickname });
       if (++count >= 499) { await batch.commit(); batch = db.batch(); count = 0; }
     }
@@ -101,14 +103,22 @@ async function doDeleteAccount() {
       db.collection('votes').where('userUid', '==', uid).get()
     ]);
 
+    const myPostIds = new Set(postsSnap.docs.map(d => d.id));
+
     // 내 게시글에 달린 댓글/투표도 삭제
-    const postIds = postsSnap.docs.map(d => d.id);
     const cascadeResults = await Promise.all(
-      postIds.map(pid => Promise.all([
+      [...myPostIds].map(pid => Promise.all([
         db.collection('comments').where('postId', '==', pid).get(),
         db.collection('votes').where('postId', '==', pid).get()
       ]))
     );
+
+    // 다른 사람 게시글에 달린 내 댓글 수 집계 → commentCount 감소에 사용
+    const commentCountDelta = {};
+    myCommentsSnap.docs.forEach(d => {
+      const pid = d.data().postId;
+      if (!myPostIds.has(pid)) commentCountDelta[pid] = (commentCountDelta[pid] || 0) + 1;
+    });
 
     const pathsSeen = new Set();
     const allRefs   = [];
@@ -128,6 +138,16 @@ async function doDeleteAccount() {
     for (let i = 0; i < allRefs.length; i += 499) {
       const b = db.batch();
       allRefs.slice(i, i + 499).forEach(ref => b.delete(ref));
+      await b.commit();
+    }
+
+    // 다른 사람 게시글의 commentCount 업데이트
+    const deltaEntries = Object.entries(commentCountDelta);
+    for (let i = 0; i < deltaEntries.length; i += 499) {
+      const b = db.batch();
+      deltaEntries.slice(i, i + 499).forEach(([pid, cnt]) => {
+        b.update(db.collection('posts').doc(pid), { commentCount: FieldValue.increment(-cnt) });
+      });
       await b.commit();
     }
 

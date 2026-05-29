@@ -210,11 +210,12 @@ async function adminDeletePostFromPanel(postId, title) {
       db.collection('comments').where('postId', '==', postId).get(),
       db.collection('votes').where('postId', '==', postId).get()
     ]);
-    const batch = db.batch();
-    cs.docs.forEach(d => batch.delete(d.ref));
-    vs.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(db.collection('posts').doc(postId));
-    await batch.commit();
+    const allRefs = [...cs.docs.map(d => d.ref), ...vs.docs.map(d => d.ref), db.collection('posts').doc(postId)];
+    for (let i = 0; i < allRefs.length; i += 499) {
+      const b = db.batch();
+      allRefs.slice(i, i + 499).forEach(ref => b.delete(ref));
+      await b.commit();
+    }
     await logAdminAction('delete_post', 'post', postId, title);
     renderAdminPosts();
   } catch (e) { alert('오류: ' + e.message); }
@@ -257,8 +258,10 @@ async function renderAdminReports() {
   el.innerHTML = '<p class="empty-msg">불러오는 중...</p>';
   const filter = document.getElementById('admin-report-filter')?.value || 'pending';
   try {
-    const snap = await db.collection('reports').orderBy('createdAt', 'desc').limit(200).get();
-    const docs = filter === 'all' ? snap.docs : snap.docs.filter(d => d.data().status === filter);
+    let query = db.collection('reports').orderBy('createdAt', 'desc').limit(200);
+    if (filter !== 'all') query = query.where('status', '==', filter);
+    const snap = await query.get();
+    const docs = snap.docs;
     if (!docs.length) { el.innerHTML = '<p class="empty-msg">신고 내역이 없습니다.</p>'; return; }
     const statusLabel = { pending: '대기', accepted: '처리됨', ignored: '무시됨' };
     const rows = docs.map(d => {
@@ -304,11 +307,12 @@ async function resolveReport(reportId, action, targetType, targetId) {
           db.collection('comments').where('postId', '==', targetId).get(),
           db.collection('votes').where('postId', '==', targetId).get()
         ]);
-        const batch = db.batch();
-        cs.docs.forEach(d => batch.delete(d.ref));
-        vs.docs.forEach(d => batch.delete(d.ref));
-        batch.delete(db.collection('posts').doc(targetId));
-        await batch.commit();
+        const allRefs = [...cs.docs.map(d => d.ref), ...vs.docs.map(d => d.ref), db.collection('posts').doc(targetId)];
+        for (let i = 0; i < allRefs.length; i += 499) {
+          const b = db.batch();
+          allRefs.slice(i, i + 499).forEach(ref => b.delete(ref));
+          await b.commit();
+        }
       } else if (targetType === 'comment') {
         const cm = await db.collection('comments').doc(targetId).get();
         if (cm.exists) {
@@ -328,6 +332,14 @@ async function resolveReport(reportId, action, targetType, targetId) {
 
 async function doReport(targetType, targetId) {
   if (!currentUser) return alert('로그인이 필요합니다.');
+  try {
+    const existing = await db.collection('reports')
+      .where('targetId', '==', targetId)
+      .where('reporterUid', '==', currentUser.uid)
+      .limit(1).get();
+    if (!existing.empty) return alert('이미 신고한 게시물입니다.');
+  } catch {}
+
   const reason = prompt('신고 사유를 입력해주세요:');
   if (!reason || !reason.trim()) return;
   try {

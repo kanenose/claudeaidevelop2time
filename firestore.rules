@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function notBanned() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) == false;
+    }
+
+    // ── users ──────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // 본인 생성, role/isBanned 필드는 본인이 직접 변경 불가
+      allow create: if isSignedIn() && request.auth.uid == userId
+                    && !request.resource.data.keys().hasAny(['role', 'isBanned']);
+      allow update: if (isSignedIn() && request.auth.uid == userId
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                            .hasAny(['role', 'isBanned']))
+                    || isAdmin();
+      allow delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+    }
+
+    // ── posts ──────────────────────────────────────────────────────
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if notBanned()
+                    && request.resource.data.authorUid == request.auth.uid;
+      // 작성자는 isNotice/isPinned/카운터 필드를 건드릴 수 없음
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && resource.data.authorUid == request.auth.uid
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                            .hasAny(['isNotice', 'isPinned', 'likes', 'dislikes',
+                                     'score', 'reactionCount', 'commentCount']));
+      allow delete: if isAdmin()
+                    || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+    }
+
+    // ── comments ──────────────────────────────────────────────────
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if notBanned()
+                    && request.resource.data.authorUid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin()
+                    || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+    }
+
+    // ── votes ─────────────────────────────────────────────────────
+    match /votes/{voteId} {
+      allow read: if isSignedIn();
+      allow write: if notBanned();
+    }
+
+    // ── reports ───────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow read:   if isAdmin();
+      allow create: if isSignedIn()
+                    && request.resource.data.reporterUid == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── settings ──────────────────────────────────────────────────
+    match /settings/{docId} {
+      allow read:  if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── adminLogs ─────────────────────────────────────────────────
+    match /adminLogs/{logId} {
+      allow read:          if isAdmin();
+      allow create:        if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}
