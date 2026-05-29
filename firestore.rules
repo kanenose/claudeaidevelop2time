@@ -33,7 +33,8 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if isSignedIn();
       allow create: if notBanned()
-                    && request.resource.data.authorUid == request.auth.uid;
+                    && request.resource.data.authorUid == request.auth.uid
+                    && (request.resource.data.category != 'test' || isAdmin());
       // 작성자는 isNotice/isPinned/카운터 필드를 건드릴 수 없음
       allow update: if isAdmin()
                     || (isSignedIn()

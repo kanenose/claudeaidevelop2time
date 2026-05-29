@@ -387,3 +387,84 @@ input:checked + .toggle-slider::before { transform: translateX(22px); }
   .nickname-edit-row { flex-direction: column; }
   .nickname-edit-row .input { max-width: 100%; }
 }
+
+/* ===================== 검색 ===================== */
+.search-bar { margin-bottom: 10px; }
+.search-input { width: 100%; }
+
+/* ===================== 카테고리 탭 ===================== */
+.category-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.category-tab {
+  padding: 4px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--muted);
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.category-tab:hover { border-color: var(--cat-color, var(--primary)); color: var(--cat-color, var(--primary)); }
+.category-tab.active { background: var(--cat-color, var(--primary)); border-color: var(--cat-color, var(--primary)); color: #fff; }
+.category-tab.admin-only-tab { border-style: dashed; }
+
+/* ===================== 카테고리 배지 ===================== */
+.badge-category {
+  display: inline-block; padding: 1px 7px; border-radius: 10px;
+  font-size: 0.72rem; font-weight: 700; color: #fff;
+  vertical-align: middle; margin-right: 4px;
+}
+
+/* ===================== 이미지 업로드 ===================== */
+.image-upload-area { margin: 8px 0; }
+.image-upload-label {
+  display: inline-block; padding: 6px 14px; border-radius: 8px;
+  border: 1.5px dashed var(--border); color: var(--muted);
+  font-size: 0.88rem; cursor: pointer; transition: border-color 0.2s;
+}
+.image-upload-label:hover { border-color: var(--primary); color: var(--primary); }
+#post-image { display: none; }
+.image-preview-wrap {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+}
+.image-preview {
+  max-width: 200px; max-height: 140px; border-radius: 8px;
+  border: 1.5px solid var(--border); object-fit: cover;
+}
+.detail-image-wrap { margin: 16px 0; }
+.detail-image {
+  max-width: 100%; border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+/* ===================== 조회수 ===================== */
+.post-card-meta .view-count { color: var(--muted); font-size: 0.82rem; }
+
+/* ===================== 대댓글 ===================== */
+.replies-wrap { margin-left: 24px; border-left: 2px solid var(--border); padding-left: 12px; margin-top: 4px; }
+.reply-card { background: var(--hover); }
+.reply-arrow { color: var(--muted); font-size: 0.9rem; margin-right: 4px; }
+.reply-btn {
+  font-size: 0.78rem; color: var(--primary); background: none;
+  border: none; cursor: pointer; padding: 0 6px; font-weight: 600;
+}
+.reply-btn:hover { text-decoration: underline; }
+.reply-input-area { margin: 8px 0 4px; }
+.reply-btn-row { display: flex; gap: 6px; margin-top: 6px; }
+
+/* ===================== 랭킹 ===================== */
+.ranking-section { margin-bottom: 16px; }
+.ranking-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+.ranking-sub { font-size: 0.78rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.ranking-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 0.12s; border-radius: 6px;
+}
+.ranking-item:last-child { border-bottom: none; }
+.ranking-item:hover { background: var(--hover); padding-left: 6px; }
+.ranking-medal { font-size: 1.3rem; flex-shrink: 0; width: 28px; text-align: center; }
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-item-title {
+  font-size: 0.95rem; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px;
+}
+.ranking-item-meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }

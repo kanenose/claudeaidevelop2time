@@ -1,5 +1,5 @@
 function showSection(name) {
-  ['auth', 'write', 'list', 'detail', 'profile', 'settings', 'admin'].forEach(s => {
+  ['auth', 'write', 'list', 'detail', 'profile', 'settings', 'admin', 'ranking'].forEach(s => {
     document.getElementById(`section-${s}`).classList.toggle('hidden', s !== name);
   });
   if (name === 'settings') {
@@ -7,9 +7,16 @@ function showSection(name) {
     if (toggle) toggle.checked = localStorage.getItem('darkMode') === '1';
     if (typeof renderSettingsForm === 'function') renderSettingsForm();
   }
+  if (name === 'write') {
+    const testOpt = document.getElementById('post-category-test');
+    if (testOpt) testOpt.style.display = isAdmin ? '' : 'none';
+  }
   if (name === 'admin') {
     if (!isAdmin) { showSection('list'); return; }
     switchAdminTab('dashboard');
+  }
+  if (name === 'ranking') {
+    renderRanking();
   }
 }
 
@@ -37,4 +44,6 @@ function updateAuthUI() {
   document.getElementById('btn-login').classList.toggle('hidden',     ok);
   document.getElementById('btn-logout').classList.toggle('hidden',   !ok);
   if (currentPostId) updateCommentWriteArea();
+  renderCategoryTabs();
+  renderPosts();
 }

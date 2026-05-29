@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>커뮤니티</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,11 +13,12 @@
       <span class="logo" onclick="goToList()">커뮤니티</span>
       <div class="header-right">
         <span id="user-nickname" class="user-nickname-link" onclick="showOwnProfile()"></span>
-        <button id="btn-write"    class="btn btn-primary hidden" onclick="showSection('write')">글쓰기</button>
-        <button id="btn-admin"    class="btn icon-btn hidden"   onclick="showSection('admin')" title="관리자">🛡️</button>
-        <button id="btn-settings" class="btn icon-btn hidden"   onclick="showSection('settings')" title="설정">⚙️</button>
-        <button id="btn-login"    class="btn"                   onclick="showSection('auth')">로그인</button>
-        <button id="btn-logout"   class="btn hidden"            onclick="doLogout()">로그아웃</button>
+        <button id="btn-ranking"  class="btn icon-btn"              onclick="showSection('ranking')" title="랭킹">🏆</button>
+        <button id="btn-write"    class="btn btn-primary hidden"    onclick="showSection('write')">글쓰기</button>
+        <button id="btn-admin"    class="btn icon-btn hidden"       onclick="showSection('admin')" title="관리자">🛡️</button>
+        <button id="btn-settings" class="btn icon-btn hidden"       onclick="showSection('settings')" title="설정">⚙️</button>
+        <button id="btn-login"    class="btn"                       onclick="showSection('auth')">로그인</button>
+        <button id="btn-logout"   class="btn hidden"                onclick="doLogout()">로그아웃</button>
       </div>
     </div>
   </header>
@@ -54,8 +55,23 @@
     <section id="section-write" class="section hidden">
       <div class="card">
         <h2>글쓰기</h2>
+        <select class="input" id="post-category">
+          <option value="free">자유</option>
+          <option value="question">질문</option>
+          <option value="info">정보</option>
+          <option value="humor">유머</option>
+          <option value="test" id="post-category-test" style="display:none">테스트 🔒</option>
+        </select>
         <input class="input" type="text" id="post-title" placeholder="제목" />
         <textarea class="input textarea" id="post-content" placeholder="내용을 입력하세요"></textarea>
+        <div class="image-upload-area">
+          <label class="image-upload-label" for="post-image">📎 이미지 첨부</label>
+          <input type="file" id="post-image" accept="image/*" onchange="previewImage(this)" />
+          <div id="image-preview-wrap" class="hidden">
+            <img id="image-preview" class="image-preview" />
+            <button class="btn btn-sm" onclick="removeImage()">✕ 제거</button>
+          </div>
+        </div>
         <label class="anon-label">
           <input type="checkbox" id="post-anon" />
           <span>익명으로 작성</span>
@@ -70,11 +86,17 @@
 
     <!-- 목록 -->
     <section id="section-list" class="section">
+      <div class="search-bar">
+        <input class="input search-input" type="text" id="search-input"
+          placeholder="제목 또는 내용 검색..." oninput="handleSearch(this.value)" />
+      </div>
+      <div class="category-tabs" id="category-tabs"></div>
       <div class="sort-bar">
         <button class="sort-btn active" data-sort="latest"   onclick="changeSort(this)">최신순</button>
         <button class="sort-btn"        data-sort="popular"  onclick="changeSort(this)">인기순</button>
         <button class="sort-btn"        data-sort="hot"      onclick="changeSort(this)">화제순</button>
         <button class="sort-btn"        data-sort="likes"    onclick="changeSort(this)">추천순</button>
+        <button class="sort-btn"        data-sort="views"    onclick="changeSort(this)">조회순</button>
         <button class="sort-btn"        data-sort="comments" onclick="changeSort(this)">댓글순</button>
       </div>
       <div id="posts-container"></div>
@@ -89,6 +111,12 @@
         <div id="comment-write-area"></div>
         <div id="comments-container"></div>
       </div>
+    </section>
+
+    <!-- 랭킹 -->
+    <section id="section-ranking" class="section hidden">
+      <button class="btn back-btn" onclick="goToList()">← 목록으로</button>
+      <div id="ranking-content"></div>
     </section>
 
     <!-- 프로필 -->
@@ -125,16 +153,9 @@
           <button class="tab"        id="admin-tab-banned-words" onclick="switchAdminTab('banned-words')">금지어</button>
           <button class="tab"        id="admin-tab-logs"         onclick="switchAdminTab('logs')">활동 로그</button>
         </div>
-
-        <div id="admin-panel-dashboard">
-          <div id="admin-dashboard"></div>
-        </div>
-        <div id="admin-panel-users" class="hidden">
-          <div id="admin-users"></div>
-        </div>
-        <div id="admin-panel-posts" class="hidden">
-          <div id="admin-posts"></div>
-        </div>
+        <div id="admin-panel-dashboard"><div id="admin-dashboard"></div></div>
+        <div id="admin-panel-users" class="hidden"><div id="admin-users"></div></div>
+        <div id="admin-panel-posts" class="hidden"><div id="admin-posts"></div></div>
         <div id="admin-panel-reports" class="hidden">
           <div style="margin-bottom:12px">
             <label style="font-size:14px;color:var(--muted)">필터:
@@ -146,19 +167,14 @@
           </div>
           <div id="admin-reports"></div>
         </div>
-        <div id="admin-panel-banned-words" class="hidden">
-          <div id="admin-banned-words"></div>
-        </div>
-        <div id="admin-panel-logs" class="hidden">
-          <div id="admin-logs"></div>
-        </div>
+        <div id="admin-panel-banned-words" class="hidden"><div id="admin-banned-words"></div></div>
+        <div id="admin-panel-logs" class="hidden"><div id="admin-logs"></div></div>
       </div>
     </section>
 
     <!-- 설정 -->
     <section id="section-settings" class="section hidden">
       <button class="btn back-btn" onclick="goToList()">← 뒤로</button>
-
       <div class="card">
         <h2>설정</h2>
         <div class="setting-row">
@@ -172,7 +188,6 @@
           </label>
         </div>
       </div>
-
       <div class="card">
         <h3 class="settings-group-title">닉네임 변경</h3>
         <div class="nickname-edit-row">
@@ -181,16 +196,14 @@
         </div>
         <p class="error-msg" id="settings-nickname-msg"></p>
       </div>
-
       <div class="card">
         <h3 class="settings-group-title">비밀번호 변경</h3>
-        <input class="input" type="password" id="settings-current-password"         placeholder="현재 비밀번호" />
-        <input class="input" type="password" id="settings-new-password"             placeholder="새 비밀번호 (6자 이상)" />
-        <input class="input" type="password" id="settings-new-password-confirm"     placeholder="새 비밀번호 확인" />
+        <input class="input" type="password" id="settings-current-password"     placeholder="현재 비밀번호" />
+        <input class="input" type="password" id="settings-new-password"         placeholder="새 비밀번호 (6자 이상)" />
+        <input class="input" type="password" id="settings-new-password-confirm" placeholder="새 비밀번호 확인" />
         <button class="btn btn-primary" onclick="doChangePassword()">변경</button>
         <p class="error-msg" id="settings-password-msg"></p>
       </div>
-
       <div class="card danger-zone-card">
         <h3 class="settings-group-title danger-title">회원 탈퇴</h3>
         <p class="setting-desc" style="margin-bottom:16px">탈퇴 시 작성한 모든 게시글과 댓글이 삭제되며 복구할 수 없습니다.</p>
@@ -205,6 +218,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
@@ -213,6 +227,7 @@
   <script src="js/posts.js"></script>
   <script src="js/comments.js"></script>
   <script src="js/votes.js"></script>
+  <script src="js/ranking.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/admin.js"></script>

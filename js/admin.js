@@ -1,3 +1,49 @@
+// ── 카테고리 마이그레이션 ─────────────────────────────────────────
+async function migrateOldPosts() {
+  if (!isAdmin) return;
+  const msgEl = document.getElementById('migrate-msg');
+  if (msgEl) { msgEl.textContent = '마이그레이션 중...'; msgEl.className = 'error-msg'; }
+
+  try {
+    // 관리자 UID 목록 수집
+    const adminSnap   = await db.collection('users').where('role', '==', 'admin').get();
+    const adminUidSet = new Set(adminSnap.docs.map(d => d.id));
+    // 현재 로그인한 관리자도 포함
+    if (currentUser) adminUidSet.add(currentUser.uid);
+
+    const postsSnap = await db.collection('posts').get();
+
+    // 카테고리가 없거나, 관리자 글인데 test가 아닌 경우 모두 재처리
+    const toMigrate = postsSnap.docs.filter(d => {
+      const data = d.data();
+      const isAdminPost = adminUidSet.has(data.authorUid);
+      return !data.category || (isAdminPost && data.category !== 'test');
+    });
+
+    if (!toMigrate.length) {
+      if (msgEl) { msgEl.textContent = '마이그레이션할 게시글이 없습니다.'; msgEl.className = 'success-msg'; }
+      return;
+    }
+
+    for (let i = 0; i < toMigrate.length; i += 499) {
+      const batch = db.batch();
+      toMigrate.slice(i, i + 499).forEach(doc => {
+        const cat = adminUidSet.has(doc.data().authorUid) ? 'test' : 'free';
+        batch.update(doc.ref, {
+          category:  cat,
+          viewCount: doc.data().viewCount || 0,
+        });
+      });
+      await batch.commit();
+    }
+
+    await logAdminAction('migrate_categories', 'posts', 'all', `${toMigrate.length}개 처리`);
+    if (msgEl) { msgEl.textContent = `✓ ${toMigrate.length}개 게시글 마이그레이션 완료`; msgEl.className = 'success-msg'; }
+  } catch (e) {
+    if (msgEl) { msgEl.textContent = '오류: ' + e.message; }
+  }
+}
+
 async function loadBannedWords() {
   try {
     const doc = await db.collection('settings').doc('bannedWords').get();
@@ -66,6 +112,12 @@ async function renderAdminDashboard() {
       <p style="font-size:12px;color:var(--muted);margin-top:8px">
         💡 첫 관리자 설정: Firebase Console → Firestore → users 컬렉션 → 본인 문서에 <code>role: "admin"</code> 필드를 추가하세요.
       </p>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <h3 style="font-size:14px;margin-bottom:10px">📦 카테고리 마이그레이션</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">기능 추가 이전 게시글에 카테고리를 자동 부여합니다.</p>
+        <button class="btn btn-primary btn-sm" onclick="migrateOldPosts()">마이그레이션 실행</button>
+        <p class="error-msg" id="migrate-msg" style="margin-top:8px"></p>
+      </div>
     `;
   } catch (e) {
     el.innerHTML = `<p class="error-msg">불러오기 실패: ${e.message}</p>`;
