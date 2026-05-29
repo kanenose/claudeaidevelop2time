@@ -38,17 +38,14 @@ function loadPosts() {
 function sortedPosts() {
   let pool = allPosts;
 
-  // 일반 유저에게 테스트 게시글 숨김
   if (!isAdmin) {
     pool = pool.filter(p => p.category !== 'test');
   }
 
-  // 카테고리 필터
   if (currentCategory !== 'all') {
     pool = pool.filter(p => p.category === currentCategory);
   }
 
-  // 검색 필터
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     pool = pool.filter(p =>
@@ -108,9 +105,8 @@ function renderPosts() {
     const noticeBadge = p.isNotice ? '<span class="badge-notice">공지</span> ' : '';
     const pinBadge    = p.isPinned && !p.isNotice ? '<span class="badge-pin">고정</span> ' : '';
     const extraCls    = p.isNotice ? ' post-notice' : p.isPinned ? ' post-pinned' : '';
-    const hasImage    = p.imageUrl ? ' has-image' : '';
     return `
-    <div class="post-card${extraCls}${hasImage}" data-post-id="${p.id}">
+    <div class="post-card${extraCls}" data-post-id="${p.id}">
       <div class="post-card-title">${noticeBadge}${pinBadge}${catBadge}${esc(p.title)}</div>
       <div class="post-card-meta">
         ${authorHtml}
@@ -122,7 +118,6 @@ function renderPosts() {
     </div>`;
   }).join('');
 
-  // 이벤트 위임으로 클릭 처리
   container.querySelectorAll('.post-card').forEach(card => {
     card.addEventListener('click', (e) => {
       const authorEl = e.target.closest('.author-link');
@@ -161,7 +156,6 @@ async function doCreatePost() {
   const title       = document.getElementById('post-title').value.trim();
   const content     = document.getElementById('post-content').value.trim();
   const isAnonymous = document.getElementById('post-anon').checked;
-  const imageFile   = document.getElementById('post-image').files[0];
   clearErr('write-err');
 
   if (!title)   return showErr('write-err', '제목을 입력해주세요.');
@@ -170,16 +164,8 @@ async function doCreatePost() {
     return showErr('write-err', '금지어가 포함되어 있습니다.');
 
   try {
-    let imageUrl = '';
-    if (imageFile) {
-      imageUrl = await uploadImage(imageFile, pct => {
-        showErr('write-err', `이미지 업로드 중... ${pct}%`);
-      });
-      clearErr('write-err');
-    }
-
     await db.collection('posts').add({
-      title, content, category, imageUrl,
+      title, content, category,
       authorUid:      currentUser.uid,
       authorNickname: isAnonymous ? '익명' : currentUser.nickname,
       isAnonymous,
@@ -192,7 +178,6 @@ async function doCreatePost() {
     document.getElementById('post-title').value   = '';
     document.getElementById('post-content').value = '';
     document.getElementById('post-anon').checked  = false;
-    removeImage();
     goToList();
   } catch (e) {
     showErr('write-err', '작성 중 오류가 발생했습니다: ' + e.message);
@@ -217,7 +202,6 @@ async function showPostDetail(postId) {
   }
   const post = { id: docSnap.id, ...docSnap.data() };
 
-  // 조회수 증가 (작성자 본인 제외)
   if (post.authorUid !== currentUser.uid) {
     db.collection('posts').doc(postId).update({ viewCount: FieldValue.increment(1) });
     post.viewCount = (post.viewCount || 0) + 1;
@@ -257,10 +241,6 @@ function renderPostDetail(post, userVote) {
     </div>
   ` : '';
 
-  const imageHtml = post.imageUrl
-    ? `<div class="detail-image-wrap"><img class="detail-image" src="${esc(post.imageUrl)}" alt="첨부 이미지" /></div>`
-    : '';
-
   const detailEl = document.getElementById('post-detail-content');
   detailEl.innerHTML = `
     <div class="detail-title">${noticeBadge}${pinBadge}${catBadge}${esc(post.title)}</div>
@@ -271,7 +251,6 @@ function renderPostDetail(post, userVote) {
       <span>점수 ${post.score||0} | 💬 ${post.commentCount||0}</span>
     </div>
     <div class="detail-content">${esc(post.content)}</div>
-    ${imageHtml}
     <div class="vote-area">
       <button class="vote-btn ${likedCls}"   data-vote-id="${post.id}" data-vote-type="1">👍 추천 ${post.likes||0}</button>
       <button class="vote-btn ${dislikeCls}" data-vote-id="${post.id}" data-vote-type="-1">👎 비추천 ${post.dislikes||0}</button>
@@ -281,7 +260,6 @@ function renderPostDetail(post, userVote) {
     ${adminControls}
   `;
 
-  // onclick 단일 핸들러 (이전 핸들러 자동 교체되어 누적 없음)
   detailEl.onclick = (e) => {
     const authorEl = e.target.closest('.author-link');
     if (authorEl) { showProfile(authorEl.dataset.uid, authorEl.dataset.nick); return; }

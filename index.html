@@ -64,14 +64,6 @@
         </select>
         <input class="input" type="text" id="post-title" placeholder="제목" />
         <textarea class="input textarea" id="post-content" placeholder="내용을 입력하세요"></textarea>
-        <div class="image-upload-area">
-          <label class="image-upload-label" for="post-image">📎 이미지 첨부</label>
-          <input type="file" id="post-image" accept="image/*" onchange="previewImage(this)" />
-          <div id="image-preview-wrap" class="hidden">
-            <img id="image-preview" class="image-preview" />
-            <button class="btn btn-sm" onclick="removeImage()">✕ 제거</button>
-          </div>
-        </div>
         <label class="anon-label">
           <input type="checkbox" id="post-anon" />
           <span>익명으로 작성</span>
@@ -218,13 +210,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/image-upload.js"></script>
   <script src="js/posts.js"></script>
   <script src="js/comments.js"></script>
   <script src="js/votes.js"></script>
