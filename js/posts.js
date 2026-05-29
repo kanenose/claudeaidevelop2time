@@ -1,19 +1,3 @@
-/* ── 이미지 업로드 미리보기 ── */
-function previewImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const wrap = document.getElementById('image-preview-wrap');
-  const img  = document.getElementById('image-preview');
-  img.src = URL.createObjectURL(file);
-  wrap.classList.remove('hidden');
-}
-
-function removeImage() {
-  document.getElementById('post-image').value = '';
-  document.getElementById('image-preview-wrap').classList.add('hidden');
-  document.getElementById('image-preview').src = '';
-}
-
 /* ── 검색 ── */
 function handleSearch(value) {
   searchQuery = value.trim();
@@ -188,10 +172,9 @@ async function doCreatePost() {
   try {
     let imageUrl = '';
     if (imageFile) {
-      showErr('write-err', '이미지 업로드 중...');
-      const ref      = storage.ref(`post-images/${Date.now()}_${imageFile.name}`);
-      const snapshot = await ref.put(imageFile);
-      imageUrl       = await snapshot.ref.getDownloadURL();
+      imageUrl = await uploadImage(imageFile, pct => {
+        showErr('write-err', `이미지 업로드 중... ${pct}%`);
+      });
       clearErr('write-err');
     }
 

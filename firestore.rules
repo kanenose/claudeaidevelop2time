@@ -35,13 +35,20 @@ service cloud.firestore {
       allow create: if notBanned()
                     && request.resource.data.authorUid == request.auth.uid
                     && (request.resource.data.category != 'test' || isAdmin());
-      // 작성자는 isNotice/isPinned/카운터 필드를 건드릴 수 없음
       allow update: if isAdmin()
-                    || (isSignedIn()
-                        && resource.data.authorUid == request.auth.uid
+                    // 작성자 — isNotice/isPinned 제외한 모든 필드 수정 가능
+                    || (isSignedIn() && resource.data.authorUid == request.auth.uid
                         && !request.resource.data.diff(resource.data).affectedKeys()
-                            .hasAny(['isNotice', 'isPinned', 'likes', 'dislikes',
-                                     'score', 'reactionCount', 'commentCount']));
+                            .hasAny(['isNotice', 'isPinned']))
+                    // 댓글 수 증감 (댓글 작성·삭제 시)
+                    || (notBanned() && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['commentCount']))
+                    // 투표 (추천·비추천)
+                    || (notBanned() && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['likes', 'dislikes', 'score', 'reactionCount', 'updatedAt']))
+                    // 조회수
+                    || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['viewCount']));
       allow delete: if isAdmin()
                     || (isSignedIn() && resource.data.authorUid == request.auth.uid);
     }
