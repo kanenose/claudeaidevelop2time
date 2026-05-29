@@ -1,0 +1,132 @@
+name: Claude Multi-Agent Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'js/**/*.js'
+      - 'index.html'
+      - 'style.css'
+      - 'firestore.rules'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── 1. 체크아웃 ────────────────────────────────────────────────
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. 변경 파일 수집 ──────────────────────────────────────────
+      - name: 변경 파일 수집
+        id: changed
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep -E '\.(js|html|css)$|firestore\.rules' || true)
+          COUNT=$(echo "$FILES" | grep -c '[^[:space:]]' || echo 0)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES"     >> $GITHUB_OUTPUT
+          echo "EOF"        >> $GITHUB_OUTPUT
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "변경 파일 수: $COUNT"
+          echo "$FILES"
+
+      # ── 3. PR 크기 확인 ────────────────────────────────────────────
+      - name: PR 크기 확인
+        id: size-check
+        run: |
+          COUNT=${{ steps.changed.outputs.count }}
+          if [ "$COUNT" -gt 10 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 크기 초과 경고 코멘트 게시
+        if: steps.size-check.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                '## ⚠️ 코드 리뷰 생략',
+                '',
+                '변경량이 너무 많습니다. 10개 이하로 분리하는 것을 권장합니다.',
+                '',
+                '> 변경된 파일 수: **${{ steps.changed.outputs.count }}개**'
+              ].join('\n')
+            });
+
+      - name: 크기 초과 시 종료
+        if: steps.size-check.outputs.skip == 'true'
+        run: exit 0
+
+      # ── 4. Claude Code 설치 ────────────────────────────────────────
+      - name: Node.js 설치
+        if: steps.size-check.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Claude Code CLI 설치
+        if: steps.size-check.outputs.skip == 'false'
+        run: npm install -g @anthropic-ai/claude-code
+
+      # ── 5. Multi-Agent 리뷰 실행 ──────────────────────────────────
+      - name: Multi-Agent 리뷰 실행
+        if: steps.size-check.outputs.skip == 'false'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/review
+
+          CHANGED_FILES="${{ steps.changed.outputs.files }}"
+
+          claude --print \
+            "변경된 파일 목록:
+          ${CHANGED_FILES}
+
+          security-reviewer, performance-reviewer, style-reviewer 세 에이전트를 병렬로 실행해서
+          위 파일들을 분석하고, 아래 기준으로 결과를 취합해줘.
+
+          취합 기준:
+          1. 동일 파일·라인을 여러 에이전트가 지적하면 가장 높은 심각도 이슈만 유지
+          2. 높음 → 중간 → 낮음 순서로 정렬
+          3. 높음 이슈만 추출한 'Action Required' 섹션을 맨 위에 작성" \
+            --output-format text \
+            > /tmp/review/final.md
+
+      # ── 6. PR 코멘트 게시 ─────────────────────────────────────────
+      - name: PR에 리뷰 코멘트 게시
+        if: steps.size-check.outputs.skip == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('/tmp/review/final.md', 'utf8');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                '## 🤖 Claude Multi-Agent 코드 리뷰',
+                '',
+                review,
+                '',
+                '---',
+                '*🔒 security-reviewer · ⚡ performance-reviewer · 🎨 style-reviewer*'
+              ].join('\n')
+            });
